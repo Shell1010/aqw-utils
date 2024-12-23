@@ -1,0 +1,182 @@
+{
+  "login": {
+    "bSuccess": 1,
+    "userid": 73655351,
+    "iAccess": 0,
+    "iUpg": 2,
+    "iAge": 21,
+    "iLevel": 100,
+    "iUpgDays": -52,
+    "bCCOnly": 0,
+    "intHours": 1,
+    "iEmailStatus": 5,
+    "sMsg": "success",
+    "sToken": "R03hCrzEF5E-r5J",
+    "strEmail": "coolkidpower1@gmail.com",
+    "strCountryCode": "GB",
+    "unm": "Archfishy",
+    "dUpgExp": "2024-11-01T13:10:00",
+    "dCreated": "2024-02-07T18:12:00"
+  },
+  "servers": [
+    {
+      "sName": "Twilly",
+      "sIP": "socket5.aq.com",
+      "iCount": 340,
+      "iMax": 1000,
+      "bOnline": 1,
+      "iChat": 0,
+      "bUpg": 0,
+      "sLang": "xx",
+      "iPort": 5588,
+      "iLevel": 0
+    },
+    {
+      "sName": "Twig",
+      "sIP": "socket4.aq.com",
+      "iCount": 115,
+      "iMax": 1000,
+      "bOnline": 1,
+      "iChat": 0,
+      "bUpg": 0,
+      "sLang": "xx",
+      "iPort": 5588,
+      "iLevel": 0
+    },
+    {
+      "sName": "Artix",
+      "sIP": "socket.aq.com",
+      "iCount": 1202,
+      "iMax": 1200,
+      "bOnline": 1,
+      "iChat": 2,
+      "bUpg": 0,
+      "sLang": "it",
+      "iPort": 5588,
+      "iLevel": 0
+    },
+    {
+      "sName": "Sepulchure",
+      "sIP": "socket2.aq.com",
+      "iCount": 133,
+      "iMax": 1000,
+      "bOnline": 1,
+      "iChat": 2,
+      "bUpg": 0,
+      "sLang": "en",
+      "iPort": 5590,
+      "iLevel": 0
+    },
+    {
+      "sName": "Gravelyn",
+      "sIP": "socket4.aq.com",
+      "iCount": 113,
+      "iMax": 1000,
+      "bOnline": 1,
+      "iChat": 2,
+      "bUpg": 0,
+      "sLang": "it",
+      "iPort": 5589,
+      "iLevel": 0
+    },
+    {
+      "sName": "Safiria",
+      "sIP": "socket6.aq.com",
+      "iCount": 134,
+      "iMax": 1000,
+      "bOnline": 1,
+      "iChat": 2,
+      "bUpg": 0,
+      "sLang": "it",
+      "iPort": 5588,
+      "iLevel": 0
+    },
+    {
+      "sName": "Sir Ver",
+      "sIP": "socket2.aq.com",
+      "iCount": 40,
+      "iMax": 1200,
+      "bOnline": 1,
+      "iChat": 2,
+      "bUpg": 1,
+      "sLang": "en",
+      "iPort": 5588,
+      "iLevel": 0
+    },
+    {
+      "sName": "Swordhaven (EU)",
+      "sIP": "euro.aqw.artix.com",
+      "iCount": 93,
+      "iMax": 1000,
+      "bOnline": 1,
+      "iChat": 2,
+      "bUpg": 0,
+      "sLang": "it",
+      "iPort": 5588,
+      "iLevel": 0
+    },
+    {
+      "sName": "Galanoth",
+      "sIP": "socket6.aq.com",
+      "iCount": 534,
+      "iMax": 1000,
+      "bOnline": 1,
+      "iChat": 2,
+      "bUpg": 0,
+      "sLang": "en",
+      "iPort": 5589,
+      "iLevel": 0
+    },
+    {
+      "sName": "Alteon",
+      "sIP": "socket4.aq.com",
+      "iCount": 172,
+      "iMax": 1000,
+      "bOnline": 1,
+      "iChat": 2,
+      "bUpg": 0,
+      "sLang": "en",
+      "iPort": 5590,
+      "iLevel": 0
+    },
+    {
+      "sName": "Yorumi",
+      "sIP": "socket3.aq.com",
+      "iCount": 998,
+      "iMax": 1000,
+      "bOnline": 1,
+      "iChat": 2,
+      "bUpg": 0,
+      "sLang": "en",
+      "iPort": 5588,
+      "iLevel": 0
+    },
+    {
+      "sName": "Yokai (SEA)",
+      "sIP": "asia.game.artix.com",
+      "iCount": 143,
+      "iMax": 1000,
+      "bOnline": 1,
+      "iChat": 2,
+      "bUpg": 0,
+      "sLang": "it",
+      "iPort": 5588,
+      "iLevel": 0
+    },
+    {
+      "sName": "Espada",
+      "sIP": "socket2.aq.com",
+      "iCount": 176,
+      "iMax": 1000,
+      "bOnline": 1,
+      "iChat": 2,
+      "bUpg": 0,
+      "sLang": "pt",
+      "iPort": 5591,
+      "iLevel": 0
+    }
+  ],
+  "polldata": {
+    "27": "[1]"
+  }
+}
