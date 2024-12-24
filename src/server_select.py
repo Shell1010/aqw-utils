@@ -16,11 +16,9 @@ class ServerSelectionPage:
         self.window.erase()
         height, width = self.window.getmaxyx()
 
-        # Draw title
         title = "Select Server"
         self.window.addstr(1, (width - len(title)) // 2, title, curses.A_BOLD)
 
-        # Draw server options
         for i, server in enumerate(self.servers):
             y = 3 + i
             x = (width - len(server)) // 2
@@ -29,7 +27,6 @@ class ServerSelectionPage:
             else:
                 self.window.addstr(y, x, server)
 
-        # Draw instructions
         instructions = "Use ↑/↓ to select, Enter to confirm, q to quit"
         self.window.addstr(height - 2, (width - len(instructions)) // 2, instructions)
 

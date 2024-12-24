@@ -18,8 +18,9 @@ class PacketType(Enum):
     UNKNOWN = "unknown"
     ADD_ITEM = "addItem"
     DROP_ITEM = "dropItem"
-    # No actual killed monster packet
+    # No actual killed monster packet with name, etc
     # I'll use this despite some edge cases existing
+    # Some monsters don't drop either
     MONSTER_DEATH = "addGoldExp"
 
 @dataclass
@@ -47,7 +48,6 @@ class PacketCapture:
         self.buffer = ""
         self.data_lock = Lock()
         
-        # Separate storage for different types of data
         self.raw_json_data: List[str] = []
         self.stat_history: List[Dict[str, Any]] = []
         self.skill_data: Dict[str, Any] = {}
@@ -57,18 +57,15 @@ class PacketCapture:
         self.added_item_drops: List[Dict[str, Any]] = []
         self.monster_death: List[Dict[str, Any]] = []
 
-        # Callbacks for different event types
         self.callbacks: Dict[PacketType, List[Callable[[GameEvent], None]]] = {
             packet_type: [] for packet_type in PacketType
         }
 
     def register_callback(self, event_type: PacketType, callback: Callable[[GameEvent], None]):
-        """Register a callback for a specific event type"""
         logging.debug(f"Added callback: {callback}")
         self.callbacks[event_type].append(callback)
 
     def _notify_callbacks(self, event: GameEvent):
-        """Notify all registered callbacks for an event"""
         for callback in self.callbacks[event.type]:
             callback(event)
 
@@ -145,7 +142,6 @@ class PacketCapture:
         event_type = PacketType(cmd) if cmd in [e.value for e in PacketType] else PacketType.UNKNOWN
         logging.debug(f"Packet Type: {event_type}") 
 
-        # Store data based on type
         match event_type:
             case PacketType.AURA_PASSIVE:
                 auras = obj.get('auras', [])
@@ -204,7 +200,6 @@ class PacketCapture:
                 logging.debug("In Unknown")
                 pass
         
-        # Store raw JSON for logging
         self.raw_json_data.append(json.dumps(data, indent=4))
 
         event = GameEvent(
@@ -223,7 +218,7 @@ class PacketCapture:
                 packet = self.packet_queue.get()
                 payload = packet[Raw].load
                 clean_payload = payload.replace(b'\x00', b'').decode('utf-8', errors='ignore')
-               
+            
                 logging.debug("Locking in process packet")
                 with self.data_lock:
                     self.buffer += clean_payload
@@ -245,26 +240,21 @@ class PacketCapture:
 
 
     def get_latest_stats(self) -> Dict[str, Any]:
-        """Get the most recent stats"""
         with self.data_lock:
             return self.stat_history[-1] if self.stat_history else {}
 
     def get_skill_data(self) -> Dict[str, Any]:
-        """Get current skill data"""
         with self.data_lock:
             return self.skill_data
 
     def get_aura_data(self) -> Dict[str, Any]:
-        """Get current aura data"""
         with self.data_lock:
             return self.aura_data
 
     def get_potion_data(self) -> Dict[str, Any]:
-        """Get current item data"""
         with self.data_lock:
             return self.item_data
 
     def get_recent_logs(self, count: int = 100) -> List[str]:
-        """Get recent raw JSON logs"""
         with self.data_lock:
             return self.raw_json_data[-count:]

@@ -5,11 +5,6 @@ import logging
 from src import PacketCapture, ServerSelectionPage, ClassSkillsPage, packet_capture
 from src.drops import DropsPage
 
-logging.basicConfig(
-    filename='game_monitor_debug.log',
-    level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
 
 
 class GameMonitor:
@@ -69,12 +64,10 @@ class GameMonitor:
 
         try:
             stdscr.addstr(nav_bar_y, nav_bar_x, nav_bar, curses.A_BOLD)
-            stdscr.refresh()
         except curses.error:
             pass
 
     def handle_input(self) -> Optional[str]:
-        # Check for global keypresses first
         page_or_key = self.current_page.handle_input()
 
         if isinstance(page_or_key, int):
@@ -112,4 +105,12 @@ def main():
     monitor.run()
 
 if __name__ == "__main__":
+    import sys
+
+    if '--logging' in sys.argv:
+        logging.basicConfig(
+            filename='game_monitor_debug.log',
+            level=logging.DEBUG,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
     main()
