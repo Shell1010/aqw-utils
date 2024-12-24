@@ -6,7 +6,7 @@ from .ui import Box
 import time
 import logging
 import math
-
+import toml
 
 @dataclass
 class ItemDrop:
@@ -20,7 +20,9 @@ class DropsPage:
         self.window = window
         self.packet_capture = packet_capture
         self.setup_boxes()
-
+        conf = toml.load("./config.toml")
+        self.rates_expiry = conf['drops'].get("rates_expiry", 60)
+        self.drops_expiry = conf['drops'].get("drops_expiry", 3600)
         self.total_gold = 0
         self.total_exp = 0
         self.monster_kills = 0
@@ -54,44 +56,44 @@ class DropsPage:
                 self.item_stats[item_name]["last_drop_time"] = current_time
 
             for item_name in list(self.item_stats.keys()):
-                if current_time - self.item_stats[item_name]["last_drop_time"] > 3600:
+                if current_time - self.item_stats[item_name]["last_drop_time"] > self.drops_expiry:
                     del self.item_stats[item_name]
 
         except Exception as e:
             logging.error(f"Error in processing drop event: {e}")
 
     def death_update(self, event: GameEvent):
-        try:
-            data = event.data
-            current_time = time.time()
+        # try:
+        data = event.data
+        current_time = time.time()
 
-            self.total_gold += data.get("intGold", 0) + data.get("bonusGold", 0)
-            self.total_exp += data.get("intExp", 0)
-            self.monster_kills += 1
-            self.last_kill_time = current_time
+        self.total_gold += data.get("intGold", 0) + data.get("bonusGold", 0)
+        self.total_exp += data.get("intExp", 0)
+        self.monster_kills += 1
+        self.last_kill_time = current_time
 
-            if current_time - self.last_kill_time > 120:
-                self.monster_kills = 0
+        if current_time - self.last_kill_time > self.rates_expiry:
+            self.monster_kills = 0
 
-            for item_name, stats in self.item_stats.items():
-                drop_count = stats["drop_count"]
-                if self.monster_kills > 0:
-                    stats["estimated_drop_rate"] = (drop_count / self.monster_kills) * 100
-                    p = drop_count / self.monster_kills
-                    if p > 0:
-                        stats["kills_until_90"] = math.ceil(math.log(1 - 0.9) / math.log(1 - p))
-                    else:
-                        stats["kills_until_90"] = float("inf")
+        for item_name, stats in self.item_stats.items():
+            drop_count = stats["drop_count"]
+            if self.monster_kills > 0:
+                stats["estimated_drop_rate"] = (drop_count / self.monster_kills) * 100
+                p = drop_count / self.monster_kills
+                if p > 0:
+                    stats["kills_until_90"] = math.ceil(math.log(1 - 0.9) / math.log(1 - p))
+                else:
+                    stats["kills_until_90"] = float("inf")
 
-            logging.debug(f"Monster death data: {data}")
-            logging.debug(f"Total gold: {self.total_gold}, Total experience: {self.total_exp}")
-        except Exception as e:
-            logging.error(f"Error in processing monster death event: {e}")
+        logging.debug(f"Monster death data: {data}")
+        logging.debug(f"Total gold: {self.total_gold}, Total experience: {self.total_exp}")
+        # except Exception as e:
+        #     logging.error(f"Error in processing monster death event: {e}")
 
     def get_rates(self) -> Dict[str, float]:
         current_time = time.time()
 
-        if self.last_kill_time and current_time - self.last_kill_time > 60:
+        if self.last_kill_time and current_time - self.last_kill_time > self.rates_expiry:
             self.total_exp = 0
             self.total_gold = 0
             return {"gps": 0, "gpm": 0, "gph": 0, "eps": 0, "epm": 0, "eph": 0}

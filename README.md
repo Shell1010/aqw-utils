@@ -8,3 +8,9 @@ Will incorporate this repo [aqw-calc](https://github.com/Shell1010/aqw-calc) int
 - [ ] Gold/Exp/Rep gain rate as you farm
 - [x] Estimated Drop rates when farming drops, and estimate when your next drop will be
 
+## Installation & Setup
+Download as zip or run this
+```sh
+git clone https://github.com/Shell1010/aqw-utils.git
+```
+
