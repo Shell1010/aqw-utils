@@ -1,5 +1,5 @@
 # AQW Utility Thing
-Will incorporate this repo [aqw-calc](https://github.com/Shell1010/aqw-calc) into this eventually. This will be basically utility program you run alongside AQW. Not necessarily the best code, as there's some bugs but generally should be usable ish. Still work in progress.
+Utility application to run alongside AQW that tracks character stats, drop rates, gold/exp rates, and more. Will incorporate this repo [aqw-calc](https://github.com/Shell1010/aqw-calc) into this eventually. WIP so buggy. 
 
 ## Feature Roadmap
 - [x] Gathering skills/passives data
@@ -9,8 +9,23 @@ Will incorporate this repo [aqw-calc](https://github.com/Shell1010/aqw-calc) int
 - [x] Estimated Drop rates when farming drops, and estimate when your next drop will be
 
 ## Installation & Setup
+Install python3.11 or later. On windows it's possible to install via Microsoft Store.
+
 Download as zip or run this
 ```sh
 git clone https://github.com/Shell1010/aqw-utils.git
 ```
 
+Install dependencies by running this in your cli
+```sh
+pip install -r requirements.txt
+```
+
+On Windows, due to the fact it does packet sniffing, you'll have to install [Npcap](https://npcap.com/#download). 
+
+Additionally you can edit the config.toml to dictate how long drop cache should last before clearing it. It's in seconds. Cache for the specific resource is only reset if no activity occurs in the specified time.
+
+Run script
+```sh
+python main.py
+```
