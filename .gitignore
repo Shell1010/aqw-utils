@@ -3,3 +3,4 @@ __pycache__/
 .venv
 .env
 game_monitor_debug.log
+other_main.py

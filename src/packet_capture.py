@@ -56,7 +56,8 @@ class PacketCapture:
         self.item_drops: List[Dict[str, Any]] = []
         self.added_item_drops: List[Dict[str, Any]] = []
         self.monster_death: List[Dict[str, Any]] = []
-
+        self.last_obj = ""
+        self.check_last = False
         self.callbacks: Dict[PacketType, List[Callable[[GameEvent], None]]] = {
             packet_type: [] for packet_type in PacketType
         }
@@ -218,17 +219,27 @@ class PacketCapture:
                 packet = self.packet_queue.get()
                 payload = packet[Raw].load
                 clean_payload = payload.replace(b'\x00', b'').decode('utf-8', errors='ignore')
-            
+                logging.debug(f"Length of payload: {len(clean_payload)}")
+                if len(clean_payload) <= len(self.last_obj):
+                    if clean_payload == self.last_obj[-len(clean_payload):] and self.check_last:
+                        continue
                 logging.debug("Locking in process packet")
                 with self.data_lock:
                     self.buffer += clean_payload
+                    logging.debug(f"Buffer Size: {len(self.buffer)}")
+                    if len(self.buffer) > 1024:
+                        logging.debug(f"OUTPUTTED BUFFER: {self.get_buffer()}")
+
                     logging.debug("Gathering json objects from queue packet")
                     json_objects, self.buffer = self.extract_json_objects(self.buffer)
                 
                     for obj in json_objects:
                         try:
+                            self.last_obj = obj
+                            self.check_last = True
                             parsed_json = json.loads(obj)
                             logging.debug(f"Parsing json data: {parsed_json}")
+
                             event = self.parse_data(parsed_json)
                             logging.debug(f"Finished parsing data")
                             self._notify_callbacks(event)
@@ -238,6 +249,8 @@ class PacketCapture:
                 logging.debug("Unlocked")
         logging.debug(f"No longer Running: {self.running}")
 
+    def get_buffer(self) -> str:
+        return self.buffer
 
     def get_latest_stats(self) -> Dict[str, Any]:
         with self.data_lock:

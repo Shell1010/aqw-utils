@@ -10,7 +10,6 @@ from src.drops import DropsPage
 class GameMonitor:
     def __init__(self):
         self.packet_capture = PacketCapture()
-        self.current_page = None
         self.pages = {}
         self.page_order = ["class_skills", "drops_ui"]  
         self.current_page_index = 0  
@@ -86,6 +85,10 @@ class GameMonitor:
 
             elif page_or_key == ord("q"):
                 return "quit"
+            
+            elif page_or_key == ord("p"):
+                logging.debug(f"OUTPUTTED BUFFER: {self.packet_capture.get_buffer()}")
+                return None
 
         if isinstance(page_or_key, str):
             if page_or_key == "quit": 

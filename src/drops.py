@@ -25,8 +25,9 @@ class DropsPage:
         self.drops_expiry = conf['drops'].get("drops_expiry", 3600)
         self.total_gold = 0
         self.total_exp = 0
+        self.total_rep = 0
         self.monster_kills = 0
-        self.last_kill_time: Optional[float] = None
+        self.last_kill_time = 0
         self.item_stats = {}  # {item_name: {"drop_count": int, "quantity_dropped": int, "estimated_drop_rate": float, "kills_until_90": float}}
 
         self.start_time = time.time()
@@ -67,10 +68,13 @@ class DropsPage:
         data = event.data
         current_time = time.time()
 
-        self.total_gold += data.get("intGold", 0) + data.get("bonusGold", 0)
+        self.total_gold += data.get("intGold", 0)
         self.total_exp += data.get("intExp", 0)
-        self.monster_kills += 1
-        self.last_kill_time = current_time
+        self.total_rep += data.get("iRep", 0)
+        logging.debug(f"Death update data: {data}")
+        if data['typ'] == "m":
+            self.monster_kills += 1
+            self.last_kill_time = current_time
 
         if current_time - self.last_kill_time > self.rates_expiry:
             self.monster_kills = 0
@@ -80,7 +84,11 @@ class DropsPage:
             if self.monster_kills > 0:
                 stats["estimated_drop_rate"] = (drop_count / self.monster_kills) * 100
                 p = drop_count / self.monster_kills
+                if p == 1:
+                    p = 0.9999
                 if p > 0:
+                    logging.debug(f"P value: {p} -> {1 - p}")
+                    logging.debug(f"P after log {math.log(1-p)}")
                     stats["kills_until_90"] = math.ceil(math.log(1 - 0.9) / math.log(1 - p))
                 else:
                     stats["kills_until_90"] = float("inf")
@@ -96,11 +104,12 @@ class DropsPage:
         if self.last_kill_time and current_time - self.last_kill_time > self.rates_expiry:
             self.total_exp = 0
             self.total_gold = 0
-            return {"gps": 0, "gpm": 0, "gph": 0, "eps": 0, "epm": 0, "eph": 0}
+            self.total_rep = 0
+            return {"gps": 0, "gpm": 0, "gph": 0, "eps": 0, "epm": 0, "eph": 0, "rps": 0, "rpm": 0, "rph": 0}
 
         elapsed_time = current_time - self.start_time
         if elapsed_time == 0:  
-            return {"gps": 0, "gpm": 0, "gph": 0, "eps": 0, "epm": 0, "eph": 0}
+            return {"gps": 0, "gpm": 0, "gph": 0, "eps": 0, "epm": 0, "eph": 0, "rps": 0, "rpm": 0, "rph": 0}
 
         gps = self.total_gold / elapsed_time
         gpm = gps * 60
@@ -110,7 +119,11 @@ class DropsPage:
         epm = eps * 60
         eph = eps * 3600
 
-        return {"gps": gps, "gpm": gpm, "gph": gph, "eps": eps, "epm": epm, "eph": eph}
+        rps = self.total_rep / elapsed_time
+        rpm = rps * 60
+        rph = rps * 3600
+
+        return {"gps": gps, "gpm": gpm, "gph": gph, "eps": eps, "epm": epm, "eph": eph, "rps": rps, "rpm": rpm, "rph": rph}
 
     def setup_boxes(self):
         height, width = self.window.getmaxyx()
@@ -154,7 +167,7 @@ class DropsPage:
             self.window,
             y=drop_y,
             x=drop_x,
-            height=35,
+            height=34,
             width=((gold_x + box_width + 4) * 2) - 8
 
         )
@@ -183,6 +196,14 @@ class DropsPage:
             }
         )
 
+        self.rep_box.update_content(
+            {
+                "Rep/s": f"{rates['rps']}",
+                "Rep/m": f"{rates['rpm']}",
+                "Rep/h": f"{rates['rph']}",
+            }
+        )
+
         drop_content = {}
         for i, (item_name, stats) in enumerate(self.item_stats.items()):
             if i < 32:
@@ -205,7 +226,8 @@ class DropsPage:
             return "quit"
         elif key == ord("\n"):
             return ord("\n")
-
+        elif key == ord("p"):
+            return ord("p")
         return None
 
 
