@@ -2,7 +2,7 @@
 Utility application to run alongside AQW that tracks character stats, drop rates, gold/exp rates, and more. Will incorporate this repo [aqw-calc](https://github.com/Shell1010/aqw-calc) into this eventually. WIP so really buggy. NOT A BOT.
 
 ## Disclaimer :warning:
-[AQW's ToS](https://www.aq.com/lore/guides/AQWRules) states no 3rd party programs, while this is not a cheating tool, it is technically regarded to be a 3rd party program. It does not connect to the servers nor does it automate sending data on behalf of you, so it's not a bot. This cannot be detected through normal means as it's the equivalent of running wireshark on your PC, it's not necessarily something AE will crack down on.
+[AQW's ToS](https://www.aq.com/lore/guides/AQWRules) states no 3rd party programs (seems intentionally vague), while this is not a cheating tool, it is technically regarded to be a 3rd party program. It does not connect to the servers nor does it automate sending data on behalf of you, so it's not a bot. This cannot be detected through normal means as it's the equivalent of running wireshark on your PC, it's not necessarily something AE will crack down on.
 
 ## Feature Roadmap
 - [x] Gathering skills/passives data
