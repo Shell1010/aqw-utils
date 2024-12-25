@@ -15,26 +15,25 @@ class Box:
 
     def draw(self):
         border_attr = curses.A_BOLD if self.selected else curses.A_NORMAL
-        middle_y = self.height // 2         
         middle_x = self.width // 2   
 
         for i in range(self.height):
             for j in range(self.width):
                 if i == 0 and j == 0:  
-                    char = "╔"
+                    char = "╭"
                 elif i == 0 and j == self.width - 1:  
-                    char = "╗"
+                    char = "╮"
                 elif i == self.height - 1 and j == 0:  
-                    char = "╚"
+                    char = "╰"
                 elif i == self.height - 1 and j == self.width - 1:  
-                    char = "╝"
+                    char = "╯"
                 elif i == 0 or i == self.height - 1:  
                     if self.selected and j == middle_x:
-                        char = "╬"  
+                        char = "┼"
                     else:
-                        char = "═"
+                        char = "─"
                 elif j == 0 or j == self.width - 1: 
-                    char = "║"
+                    char = "│"
                 else:
                     continue 
                 try:

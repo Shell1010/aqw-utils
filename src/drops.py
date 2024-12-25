@@ -29,8 +29,8 @@ class DropsPage:
         self.monster_kills = 0
         self.last_kill_time = 0
         self.item_stats = {}  # {item_name: {"drop_count": int, "quantity_dropped": int, "estimated_drop_rate": float, "kills_until_90": float}}
-
-        self.start_time = time.time()
+        self.first_kill = True
+        self.start_time = 0 
 
         self.packet_capture.register_callback(PacketType.MONSTER_DEATH, self.death_update)
         self.packet_capture.register_callback(PacketType.DROP_ITEM, self.drop_update)
@@ -78,6 +78,7 @@ class DropsPage:
 
         if current_time - self.last_kill_time > self.rates_expiry:
             self.monster_kills = 0
+    
 
         for item_name, stats in self.item_stats.items():
             drop_count = stats["drop_count"]
@@ -101,10 +102,15 @@ class DropsPage:
     def get_rates(self) -> Dict[str, float]:
         current_time = time.time()
 
+        if self.first_kill:
+            self.start_time = current_time
+            self.first_kill = False
+
         if self.last_kill_time and current_time - self.last_kill_time > self.rates_expiry:
             self.total_exp = 0
             self.total_gold = 0
             self.total_rep = 0
+            self.first_kill = True
             return {"gps": 0, "gpm": 0, "gph": 0, "eps": 0, "epm": 0, "eph": 0, "rps": 0, "rpm": 0, "rph": 0}
 
         elapsed_time = current_time - self.start_time

@@ -1,5 +1,5 @@
 # AQW Utility Thing
-Utility application to run alongside AQW that tracks character stats, drop rates, gold/exp rates, and more. Will incorporate this repo [aqw-calc](https://github.com/Shell1010/aqw-calc) into this eventually. WIP so really buggy. NOT A BOT.
+TUI application to run alongside AQW that tracks character stats, drop rates, gold/exp rates, and more. Will incorporate this repo [aqw-calc](https://github.com/Shell1010/aqw-calc) into this eventually. WIP so really buggy. NOT A BOT.
 
 ## Disclaimer :warning:
 [AQW's ToS](https://www.aq.com/lore/guides/AQWRules) states no 3rd party programs (seems intentionally vague), while this is not a cheating tool, it is technically regarded to be a 3rd party program. It does not connect to the servers nor does it automate sending data on behalf of you, so it's not a bot. This cannot be detected through normal means as it's the equivalent of running wireshark on your PC, it's not necessarily something AE will crack down on.
@@ -35,5 +35,10 @@ python main.py
 ```
 
 ### Usage
-Use arrow keys to navigate server list, enter to select.
+Use arrow keys to navigate, enter to change pages.
 It utilises packet sniffing, so only gets data AFTER an event happens, get class data by changing classes, changing pots.
+
+*My terminal blur is a result of my compositor, UI is pretty much plain black and white*
+![Class UI Screenshot](./images/class_ui.png)
+
+![Drop UI Screenshot](./images/drops_ui.png)
