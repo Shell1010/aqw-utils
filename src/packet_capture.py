@@ -220,6 +220,8 @@ class PacketCapture:
                 payload = packet[Raw].load
                 clean_payload = payload.replace(b'\x00', b'').decode('utf-8', errors='ignore')
                 logging.debug(f"Length of payload: {len(clean_payload)}")
+                # This check is so that if the server somehow "forgets" (it does)
+                # It doesn't add any data from the previous completed buffer
                 if len(clean_payload) <= len(self.last_obj):
                     if clean_payload == self.last_obj[-len(clean_payload):] and self.check_last:
                         continue

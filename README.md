@@ -30,3 +30,7 @@ Run script
 ```sh
 python main.py
 ```
+
+### Usage
+Use arrow keys to navigate server list, enter to select.
+It utilises packet sniffing, so only gets data AFTER an event happens, get class data by changing classes, changing pots.

@@ -15,7 +15,7 @@ class ClassSkillsPage:
         self.selected_index = 0  # Index of the currently selected box
         self.setup_boxes()
         height, width = self.window.getmaxyx()
-        self.full_content = Box(window, 20, 2, 26, width // 3 - 4)
+        self.full_content = Box(window, 20, 2, 26, width // 3 - 4, title="Raw Data")
         self.packet_capture.register_callback(PacketType.SKILL_DATA, self.update_skills)
         self.packet_capture.register_callback(PacketType.ITEM_UPDATE, self.update_pots)
         self.packet_capture.register_callback(PacketType.AURA_PASSIVE, self.update_passives)
@@ -27,22 +27,29 @@ class ClassSkillsPage:
         box_width = width // 3 - 4
 
         # Create 6 boxes in a 2x3 grid
+        c = 0
         for i in range(2):  # rows
             for j in range(3):  # columns
+                c += 1
                 y = 3 + i * (box_height + 1)
                 x = 2 + j * (box_width + 2)
-                self.skill_boxes.append(Box(self.window, y, x, box_height, box_width))
-
+                if i == 1 and j == 2:
+                    self.skill_boxes.append(Box(self.window, y, x, box_height, box_width, title=f"Potion {c}"))
+                else:
+                    self.skill_boxes.append(Box(self.window, y, x, box_height, box_width, title=f"Skill {c}"))
+        
+        c = 0
     
-        middle_skill_box = self.skill_boxes[4]  # Middle box in the 2nd row
-        passive_x = middle_skill_box.x  # Align horizontally with the middle skill box
-        passive_start_y = middle_skill_box.y + box_height # Place right below it
+        middle_skill_box = self.skill_boxes[4] 
+        passive_x = middle_skill_box.x  
+        passive_start_y = middle_skill_box.y + box_height 
 
-        for i in range(3):  # Create 3 passive boxes in a column
+        for i in range(3):
+            c += 1
             y = passive_start_y + i * (box_height + 1)
-            self.passive_boxes.append(Box(self.window, y, passive_x, box_height, box_width))
-
-            self.skill_boxes[0].selected = True
+            self.passive_boxes.append(Box(self.window, y, passive_x, box_height, box_width, title=f"Passive {c}"))
+        
+        self.skill_boxes[0].selected = True
 
     def update_passives(self, event: GameEvent):
 
@@ -105,8 +112,6 @@ class ClassSkillsPage:
         logging.debug(f"Received event: {event}")
         logging.debug(f"Full event data: {event.data}")
 
-        # Debug info to show in UI
-        debug_content = {}
 
         try:
             actions = event.data.get("actions", {})
@@ -114,14 +119,6 @@ class ClassSkillsPage:
 
             active_skills = actions.get("active", [])
             logging.debug(f"Active skills: {active_skills}")
-
-            debug_content["Event Type"] = str(event.type)
-            debug_content["Skills Count"] = str(
-                len(active_skills) if active_skills else "0"
-            )
-            debug_content["Raw Data"] = (
-                str(event.data)[:50] + "..."
-            )  # Truncated for display
 
             if active_skills:
                 for i, skill in enumerate(active_skills):
@@ -146,19 +143,15 @@ class ClassSkillsPage:
                 logging.warning("No active skills found in event data")
         except Exception as e:
             logging.error(f"Error in update_skills: {str(e)}", exc_info=True)
-            debug_content["Error"] = str(e)
 
-        # Update debug box
 
     def draw(self):
         self.window.erase()
         height, width = self.window.getmaxyx()
 
-        # Draw title
-        title = "Current Class Skills"
+        title = "Current Class Data"
         self.window.addstr(1, (width - len(title)) // 2, title, curses.A_BOLD)
 
-        # Draw all boxes
         for box in self.skill_boxes:
             box.draw()
 
@@ -166,7 +159,6 @@ class ClassSkillsPage:
             box.draw()
         self.full_content.draw()
     
-        # self.debug_box.draw()
 
         self.window.refresh()
 
@@ -195,7 +187,6 @@ class ClassSkillsPage:
         elif key == curses.KEY_RIGHT:
             self.selected_index = (self.selected_index + 1) % len(self.skill_boxes)  # Move right
 
-        # Update selection
         self.skill_boxes[old_index].selected = False
         self.skill_boxes[self.selected_index].selected = True
 

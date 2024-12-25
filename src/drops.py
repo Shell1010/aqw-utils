@@ -138,6 +138,7 @@ class DropsPage:
             x=gold_x,
             height=box_height,
             width=box_width,
+            title="Gold"
         )
 
         exp_y = gold_y
@@ -148,6 +149,7 @@ class DropsPage:
             x=exp_x,
             height=box_height,
             width=box_width,
+            title="EXP"
         )
 
 
@@ -158,7 +160,8 @@ class DropsPage:
             y=rep_y,
             x=rep_x,
             height=box_height,
-            width=box_width
+            width=box_width,
+            title="Rep"
         )
 
         drop_y = gold_y + 9
@@ -168,14 +171,14 @@ class DropsPage:
             y=drop_y,
             x=drop_x,
             height=34,
-            width=((gold_x + box_width + 4) * 2) - 8
-
+            width=((gold_x + box_width + 4) * 2) - 8,
+            title="Item Drops"
         )
 
     def draw(self):
         self.window.erase()
         height, width = self.window.getmaxyx()
-        title = "Drops UI"
+        title = "Resource Monitor"
         self.window.addstr(1, (width - len(title)) // 2, title, curses.A_BOLD)
 
         rates = self.get_rates()
