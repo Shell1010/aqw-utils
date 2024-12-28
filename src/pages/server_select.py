@@ -1,7 +1,7 @@
 import curses
 
 from scapy.all import logging
-from .packet_capture import PacketCapture
+from ..packet_capture import PacketCapture
 
 from typing import Optional
 
@@ -42,7 +42,7 @@ class ServerSelectionPage:
             selected_server = self.servers[self.selected_idx]
             logging.debug(f"Selected Server: {selected_server}")
             self.packet_capture.start(selected_server)
-            return "class_skills"
+            return "class_data"
         elif key == ord("q"):
             return "quit"
         elif key == ord("\n"):

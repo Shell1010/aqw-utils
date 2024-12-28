@@ -227,6 +227,9 @@ class PacketCapture:
                         continue
                 logging.debug("Locking in process packet")
                 with self.data_lock:
+                    # Bad check but necessary because unpredictability
+                    if len(self.buffer) > 15000:
+                        self.buffer = ""
                     self.buffer += clean_payload
                     logging.debug(f"Buffer Size: {len(self.buffer)}")
                     if len(self.buffer) > 1024:

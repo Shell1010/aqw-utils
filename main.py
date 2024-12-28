@@ -3,7 +3,7 @@ import time
 from typing import Optional, List, Dict, Any
 import logging
 from src import PacketCapture, ServerSelectionPage, ClassSkillsPage, packet_capture
-from src.drops import DropsPage
+from src import DropsPage
 
 
 
@@ -11,7 +11,7 @@ class GameMonitor:
     def __init__(self):
         self.packet_capture = PacketCapture()
         self.pages = {}
-        self.page_order = ["class_skills", "drops_ui"]  
+        self.page_order = ["class_data", "resource_monitor"]  
         self.current_page_index = 0  
 
     def init_curses(self, stdscr: "curses.window"):
@@ -28,8 +28,8 @@ class GameMonitor:
 
         self.pages = {
             "server_selection": ServerSelectionPage(stdscr, self.packet_capture),
-            "class_skills": ClassSkillsPage(stdscr, self.packet_capture),
-            "drops_ui": DropsPage(stdscr, self.packet_capture),
+            "class_data": ClassSkillsPage(stdscr, self.packet_capture),
+            "resource_monitor": DropsPage(stdscr, self.packet_capture),
         }
 
         self.current_page = self.pages["server_selection"]

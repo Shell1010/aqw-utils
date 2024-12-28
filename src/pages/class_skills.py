@@ -1,8 +1,8 @@
-from .packet_capture import PacketCapture, PacketType, GameEvent
+from ..packet_capture import PacketCapture, PacketType, GameEvent
 import logging
 from typing import List, Optional
 import curses
-from .ui import Box
+from ..ui import Box
 
 
 class ClassSkillsPage:
@@ -14,8 +14,6 @@ class ClassSkillsPage:
         self.passive_boxes: List[Box] = []
         self.selected_index = 0  # Index of the currently selected box
         self.setup_boxes()
-        height, width = self.window.getmaxyx()
-        self.full_content = Box(window, 20, 2, 26, width // 3 - 4, title="Raw Data")
         self.packet_capture.register_callback(PacketType.SKILL_DATA, self.update_skills)
         self.packet_capture.register_callback(PacketType.ITEM_UPDATE, self.update_pots)
         self.packet_capture.register_callback(PacketType.AURA_PASSIVE, self.update_passives)
@@ -32,7 +30,7 @@ class ClassSkillsPage:
             for j in range(3):  # columns
                 c += 1
                 y = 3 + i * (box_height + 1)
-                x = 2 + j * (box_width + 2)
+                x = 2 + j * (box_width + 4)
                 if i == 1 and j == 2:
                     self.skill_boxes.append(Box(self.window, y, x, box_height, box_width, title=f"Potion {c}"))
                 else:
@@ -40,9 +38,9 @@ class ClassSkillsPage:
         
         c = 0
     
-        middle_skill_box = self.skill_boxes[4] 
-        passive_x = middle_skill_box.x  
-        passive_start_y = middle_skill_box.y + box_height 
+        last_skill_box = self.skill_boxes[-1] 
+        passive_x = last_skill_box.x  
+        passive_start_y = last_skill_box.y + box_height 
 
         for i in range(3):
             c += 1
@@ -50,6 +48,8 @@ class ClassSkillsPage:
             self.passive_boxes.append(Box(self.window, y, passive_x, box_height, box_width, title=f"Passive {c}"))
         
         self.skill_boxes[0].selected = True
+        self.full_content = Box(self.window, 20, 2, 26, 2 * (box_width) + 4, title="Raw Data")
+
 
     def update_passives(self, event: GameEvent):
 
@@ -139,6 +139,7 @@ class ClassSkillsPage:
                         self.skill_boxes[i].update_content(content, skill)
 
                         logging.debug(f"Updated box {i} with content: {content}")
+                self.send_full_content()
             else:
                 logging.warning("No active skills found in event data")
         except Exception as e:

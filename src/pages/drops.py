@@ -1,8 +1,8 @@
 import curses
 from dataclasses import dataclass
 from typing import Dict, Optional
-from .packet_capture import GameEvent, PacketCapture, PacketType
-from .ui import Box
+from ..packet_capture import GameEvent, PacketCapture, PacketType
+from ..ui import Box
 import time
 import logging
 import math
@@ -30,7 +30,9 @@ class DropsPage:
         self.last_kill_time = 0
         self.item_stats = {}  # {item_name: {"drop_count": int, "quantity_dropped": int, "estimated_drop_rate": float, "kills_until_90": float}}
         self.first_kill = True
-        self.start_time = 0 
+        self.start_time = 0
+        self.elapsed_time = 0
+
 
         self.packet_capture.register_callback(PacketType.MONSTER_DEATH, self.death_update)
         self.packet_capture.register_callback(PacketType.DROP_ITEM, self.drop_update)
@@ -73,12 +75,15 @@ class DropsPage:
         self.total_rep += data.get("iRep", 0)
         logging.debug(f"Death update data: {data}")
         if data['typ'] == "m":
+            if self.first_kill:
+                self.start_time = current_time
+                self.first_kill = False
             self.monster_kills += 1
             self.last_kill_time = current_time
 
-        if current_time - self.last_kill_time > self.rates_expiry:
-            self.monster_kills = 0
-    
+
+
+        
 
         for item_name, stats in self.item_stats.items():
             drop_count = stats["drop_count"]
@@ -88,8 +93,6 @@ class DropsPage:
                 if p == 1:
                     p = 0.9999
                 if p > 0:
-                    logging.debug(f"P value: {p} -> {1 - p}")
-                    logging.debug(f"P after log {math.log(1-p)}")
                     stats["kills_until_90"] = math.ceil(math.log(1 - 0.9) / math.log(1 - p))
                 else:
                     stats["kills_until_90"] = float("inf")
@@ -102,34 +105,37 @@ class DropsPage:
     def get_rates(self) -> Dict[str, float]:
         current_time = time.time()
 
-        if self.first_kill:
-            self.start_time = current_time
-            self.first_kill = False
+        
 
         if self.last_kill_time and current_time - self.last_kill_time > self.rates_expiry:
+            self.monster_kills = 0
             self.total_exp = 0
             self.total_gold = 0
             self.total_rep = 0
             self.first_kill = True
-            return {"gps": 0, "gpm": 0, "gph": 0, "eps": 0, "epm": 0, "eph": 0, "rps": 0, "rpm": 0, "rph": 0}
+            return {"gps": 0, "gpm": 0, "gph": 0, "eps": 0, "epm": 0, "eph": 0, "rps": 0, "rpm": 0, "rph": 0, "kps": 0, "kpm": 0, "kph": 0}
 
-        elapsed_time = current_time - self.start_time
-        if elapsed_time == 0:  
-            return {"gps": 0, "gpm": 0, "gph": 0, "eps": 0, "epm": 0, "eph": 0, "rps": 0, "rpm": 0, "rph": 0}
+        self.elapsed_time = current_time - self.start_time
+        if self.elapsed_time == 0:  
+            return {"gps": 0, "gpm": 0, "gph": 0, "eps": 0, "epm": 0, "eph": 0, "rps": 0, "rpm": 0, "rph": 0, "kps": 0, "kpm": 0, "kph": 0}
 
-        gps = self.total_gold / elapsed_time
+        gps = self.total_gold / self.elapsed_time
         gpm = gps * 60
         gph = gps * 3600
 
-        eps = self.total_exp / elapsed_time
+        eps = self.total_exp / self.elapsed_time
         epm = eps * 60
         eph = eps * 3600
 
-        rps = self.total_rep / elapsed_time
+        rps = self.total_rep / self.elapsed_time
         rpm = rps * 60
         rph = rps * 3600
 
-        return {"gps": gps, "gpm": gpm, "gph": gph, "eps": eps, "epm": epm, "eph": eph, "rps": rps, "rpm": rpm, "rph": rph}
+        kps = self.monster_kills / self.elapsed_time
+        kpm = kps * 60
+        kph = kps * 3600
+
+        return {"gps": gps, "gpm": gpm, "gph": gph, "eps": eps, "epm": epm, "eph": eph, "rps": rps, "rpm": rpm, "rph": rph, "kps": kps, "kpm": kpm, "kph": kph}
 
     def setup_boxes(self):
         height, width = self.window.getmaxyx()
@@ -172,13 +178,36 @@ class DropsPage:
 
         drop_y = gold_y + 9
         drop_x = 2
+        drop_width = ((gold_x + box_width + 4) * 2) - 8
         self.drop_box = Box(
             self.window,
             y=drop_y,
             x=drop_x,
             height=34,
-            width=((gold_x + box_width + 4) * 2) - 8,
+            width=drop_width,
             title="Item Drops"
+        )
+
+        kill_y = drop_y
+        kill_x = drop_x + ((gold_x + box_width) * 2) + 4
+        self.kill_box = Box(
+            self.window,
+            y=kill_y,
+            x=kill_x,
+            height=box_height,
+            width=box_width,
+            title="Kills"
+        )
+
+        stats_y = kill_y + 9
+        stats_x = kill_x
+        self.stats_box = Box(
+            self.window,
+            y=stats_y,
+            x=stats_x,
+            height=box_height,
+            width=box_width,
+            title="Farm Stats"
         )
 
     def draw(self):
@@ -207,9 +236,29 @@ class DropsPage:
 
         self.rep_box.update_content(
             {
-                "Rep/s": f"{rates['rps']}",
-                "Rep/m": f"{rates['rpm']}",
-                "Rep/h": f"{rates['rph']}",
+                "Rep/s": f"{rates['rps']:.2f}",
+                "Rep/m": f"{rates['rpm']:.2f}",
+                "Rep/h": f"{rates['rph']:.2f}",
+            }
+        )
+
+        self.kill_box.update_content(
+            {
+                "Kill/s": f"{rates['kps']:.2f}",
+                "Kill/m": f"{rates['kpm']:.2f}",
+                "Kill/h": f"{rates['kph']:.2f}"
+            }
+        )
+
+        hours, remainder = divmod(int(self.elapsed_time), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        self.stats_box.update_content(
+            {
+                "Time": f"{hours}:{minutes}:{seconds}",
+                "Kills": f"{self.monster_kills}",
+                "Gold": f"{self.total_gold}",
+                "Exp": f"{self.total_exp}",
+                "Rep": f"{self.total_rep}",
             }
         )
 
@@ -226,6 +275,8 @@ class DropsPage:
         self.exp_box.draw()
         self.drop_box.draw()
         self.rep_box.draw()
+        self.kill_box.draw()
+        self.stats_box.draw()
 
         self.window.refresh()
     
