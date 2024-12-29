@@ -76,7 +76,7 @@ Drop rates in the Resource Monitor page aren't the actual drop rates and can onl
 
 Drop rates are calculated as `drop_count/kills` where drop_count is the amount of times it's dropped from a kill.
 
-The assumed next drop attempts to calculate the number of kills needed to reach a 90% CDF or above over a geometric distribution. The equation is `n=log(1-0.9)/log(1-p)` where p is the previous assumed drop rate from before. It is then rounded up.
+The assumed next drop attempts to calculate the number of kills needed to reach a 90% CDF or above over a geometric distribution. The equation is `log(1-0.9)/log(1-p)` where p is the previous assumed drop rate from before. It is then rounded up.
 
 
 
