@@ -70,11 +70,13 @@ You can view them [here](https://docs.google.com/spreadsheets/d/1wU6JlyrK_jYn5mV
 
 There is also [this sheet](https://docs.google.com/spreadsheets/d/1aiw1TneA6ITVfpsn_lNJ-9q4h7kwWN4lNo9jvxwR7gw/edit?gid=0#gid=0) for reading stat data that may not be obvious.
 
+The resource monitor page has stats for your Gold, Exp, Rep, Kills and even your Drops. You can use this page to monitor the rates at which you farm, you can even use this to estimate drop rates and see when you'll most likely get your next drop.
+
 Drop rates in the Resource Monitor page aren't the actual drop rates and can only be assumed from farms themselves. However, over periods of time they can be an accurate depiction of the drop rates for said item.
 
-Drop rates are calculated as $`drop_count/kills` where drop_count is the amount of times it's dropped from a kill.
+Drop rates are calculated as `drop_count/kills` where drop_count is the amount of times it's dropped from a kill.
 
-The assumed next drop attempts to calculate the number of kills needed to reach a 90% CDF or above over a geometric distribution. The equation is $`n=log(1-0.9)/log(1-p) where p is the previous assumed drop rate from before. It is then rounded up.
+The assumed next drop attempts to calculate the number of kills needed to reach a 90% CDF or above over a geometric distribution. The equation is `n=log(1-0.9)/log(1-p)` where p is the previous assumed drop rate from before. It is then rounded up.
 
 
 
