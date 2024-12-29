@@ -1,23 +1,4 @@
 {
-  "login": {
-    "bSuccess": 1,
-    "userid": 73655351,
-    "iAccess": 0,
-    "iUpg": 2,
-    "iAge": 21,
-    "iLevel": 100,
-    "iUpgDays": -52,
-    "bCCOnly": 0,
-    "intHours": 1,
-    "iEmailStatus": 5,
-    "sMsg": "success",
-    "sToken": "R03hCrzEF5E-r5J",
-    "strEmail": "coolkidpower1@gmail.com",
-    "strCountryCode": "GB",
-    "unm": "Archfishy",
-    "dUpgExp": "2024-11-01T13:10:00",
-    "dCreated": "2024-02-07T18:12:00"
-  },
   "servers": [
     {
       "sName": "Twilly",

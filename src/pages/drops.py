@@ -2,7 +2,7 @@ import curses
 from dataclasses import dataclass
 from typing import Dict, Optional
 from ..packet_capture import GameEvent, PacketCapture, PacketType
-from ..ui import Box
+from ..ui import Box, DropBox
 import time
 import logging
 import math
@@ -37,6 +37,7 @@ class DropsPage:
         self.packet_capture.register_callback(PacketType.MONSTER_DEATH, self.death_update)
         self.packet_capture.register_callback(PacketType.DROP_ITEM, self.drop_update)
 
+    
     def drop_update(self, event: GameEvent):
         try:
             data = event.data["items"]
@@ -52,18 +53,23 @@ class DropsPage:
                         "estimated_drop_rate": 0.0,
                         "kills_until_90": float("inf"),
                         "last_drop_time": current_time,
+                        "drops_per_second": 0.0,
+                        "drops_per_minute": 0.0,
+                        "drops_per_hour": 0.0
                     }
 
                 self.item_stats[item_name]["drop_count"] += 1
                 self.item_stats[item_name]["quantity_dropped"] += quantity
                 self.item_stats[item_name]["last_drop_time"] = current_time
 
+                
             for item_name in list(self.item_stats.keys()):
                 if current_time - self.item_stats[item_name]["last_drop_time"] > self.drops_expiry:
                     del self.item_stats[item_name]
 
         except Exception as e:
             logging.error(f"Error in processing drop event: {e}")
+
 
     def death_update(self, event: GameEvent):
         # try:
@@ -93,6 +99,7 @@ class DropsPage:
                 if p == 1:
                     p = 0.9999
                 if p > 0:
+                    logging.debug(f"P value: {p}")
                     stats["kills_until_90"] = math.ceil(math.log(1 - 0.9) / math.log(1 - p))
                 else:
                     stats["kills_until_90"] = float("inf")
@@ -108,6 +115,8 @@ class DropsPage:
         
 
         if self.last_kill_time and current_time - self.last_kill_time > self.rates_expiry:
+            for item_name in list(self.item_stats.keys()):
+                self.item_stats[item_name]['drop_count'] = 0 
             self.monster_kills = 0
             self.total_exp = 0
             self.total_gold = 0
@@ -134,6 +143,16 @@ class DropsPage:
         kps = self.monster_kills / self.elapsed_time
         kpm = kps * 60
         kph = kps * 3600
+
+        for item_name in list(self.item_stats.keys()):
+            if not self.first_kill:
+                elapsed = current_time - self.start_time
+                if elapsed > 0:
+                    drops_per_second = self.item_stats[item_name]["quantity_dropped"] / elapsed
+                    self.item_stats[item_name]["drops_per_second"] = drops_per_second
+                    self.item_stats[item_name]["drops_per_minute"] = drops_per_second * 60
+                    self.item_stats[item_name]["drops_per_hour"] = drops_per_second * 3600
+
 
         return {"gps": gps, "gpm": gpm, "gph": gph, "eps": eps, "epm": epm, "eph": eph, "rps": rps, "rpm": rpm, "rph": rph, "kps": kps, "kpm": kpm, "kph": kph}
 
@@ -179,7 +198,7 @@ class DropsPage:
         drop_y = gold_y + 9
         drop_x = 2
         drop_width = ((gold_x + box_width + 4) * 2) - 8
-        self.drop_box = Box(
+        self.drop_box = DropBox(
             self.window,
             y=drop_y,
             x=drop_x,
@@ -187,7 +206,6 @@ class DropsPage:
             width=drop_width,
             title="Item Drops"
         )
-
         kill_y = drop_y
         kill_x = drop_x + ((gold_x + box_width) * 2) + 4
         self.kill_box = Box(
@@ -261,15 +279,24 @@ class DropsPage:
                 "Rep": f"{self.total_rep}",
             }
         )
+        sorted_items = sorted(
+            self.item_stats.items(),
+            key=lambda x: x[1]['last_drop_time'],
+            reverse=True
+        )
 
         drop_content = {}
-        for i, (item_name, stats) in enumerate(self.item_stats.items()):
-            if i < 32:
-                drop_content[item_name] = (
-                    f"Drop Rate: {stats['estimated_drop_rate']:.2f}%, "
-                    f"Next Drop: ~{stats['kills_until_90']} kills"
-                )
+        for i, (item_name, stats) in enumerate(sorted_items[:5]):
+            drop_content[item_name] = {
+                "Drop Rate": f"{stats['estimated_drop_rate']:.2f}%",
+                "Next Drop": f"~ {stats['kills_until_90']} kills",
+                "Drop/s": f"{stats['drops_per_second']:.2f}",
+                "Drop/m": f"{stats['drops_per_minute']:.2f}",
+                "Drop/h": f"{stats['drops_per_hour']:.2f}"
+            }
+
         self.drop_box.update_content(drop_content)
+    
 
         self.gold_box.draw()
         self.exp_box.draw()
