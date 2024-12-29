@@ -33,16 +33,21 @@ class GameEvent:
 
 class PacketCapture:
     def __init__(self):
-
+        # Multiple servers have the same IP
         self.servers = {
             "Artix": "172.65.160.131",
             "Swordhaven (EU)": "172.65.207.70",
             "Yokai (SEA)": "172.65.236.72",
             "Yorumi": "172.65.249.41",
-            "Twilly": "172.65.210.123"
-            "Safiria/Galanoth": "172.65.249.3",
-            "Alteon/Gravelyn/Twig": "172.65.235.85",
-            "Sir Ver/Espada/Sepulchure": "172.65.220.106",
+            "Twilly": "172.65.210.123",
+            "Safiria": "172.65.249.3",
+            "Galanoth": "172.65.249.3",
+            "Alteon": "172.65.235.85",
+            "Gravelyn": "172.65.235.85",
+            "Twig": "172.65.235.85",
+            "Sir Ver": "172.65.220.106",
+            "Espada": "172.65.220.106",
+            "Sepulchure": "172.65.220.106",
         }
 
         self.packet_queue = Queue()

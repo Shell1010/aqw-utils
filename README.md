@@ -37,30 +37,7 @@ python main.py
 ```
 
 ## Usage
-First select a server to sniff from. Use the arrow keys to navigate the serverlist, and Enter to select. Servers are grouped together because multiple servers share a single IP address. Here's a list below.
-
-**Servers grouped by IP**
-- socket6.aq.com (172.65.249.3)
-  - Safiria
-  - Galanoth
-- socket5.aq.com (172.65.210.123)
-  - Twilly
-- socket4.aq.com (172.65.235.85)
-  - Twig
-  - Gravelyn
-  - Alteon
-- socket3.aq.com (172.65.249.41)
-  - Yorumi
-- socket2.aq.com (172.65.220.106)
-  - Sepulchure
-  - Sir Ver
-  - Espada
-- socket.aq.com (172.65.160.131)
-  - Artix
-- euro.aqw.artix.com (172.65.207.70)
-  - Swordhaven (EU)
-- asia.game.artix.com (172.65.236.72)
-  - Yokai (SEA)
+First select a server to sniff from. Use the arrow keys to navigate the serverlist, and Enter to select.
 
 Once you've selected a server, you can alternate between pages with the Enter key, use the arrow keys to alternate between boxes on the Class Data page.
 
