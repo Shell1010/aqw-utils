@@ -21,6 +21,8 @@ class PacketType(Enum):
     # No actual killed monster packet with name, etc
     # I'll use this despite some edge cases existing
     # Some monsters don't drop either
+    # As long as typ == "m" its a kill
+    # typ == "q" quest
     MONSTER_DEATH = "addGoldExp"
 
 @dataclass
@@ -35,11 +37,12 @@ class PacketCapture:
         self.servers = {
             "Artix": "172.65.160.131",
             "Swordhaven (EU)": "172.65.207.70",
-            "Yokai (SEA)": "72.65.236.72",
-            "Safiria": "172.65.249.3",
-            "Alteon": "172.65.235.85",
-            "Sir Ver": "172.65.220.106",
+            "Yokai (SEA)": "172.65.236.72",
             "Yorumi": "172.65.249.41",
+            "Twilly": "172.65.210.123"
+            "Safiria/Galanoth": "172.65.249.3",
+            "Alteon/Gravelyn/Twig": "172.65.235.85",
+            "Sir Ver/Espada/Sepulchure": "172.65.220.106",
         }
 
         self.packet_queue = Queue()
