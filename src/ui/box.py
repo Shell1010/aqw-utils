@@ -14,7 +14,10 @@ class Box:
         self.title = title
 
     def draw(self):
-        border_attr = curses.A_BOLD if self.selected else curses.A_NORMAL
+        if self.selected:
+            border_attr = curses.color_pair(1) | curses.A_BOLD
+        else:
+            border_attr = curses.color_pair(2) | curses.A_NORMAL 
         middle_x = self.width // 2   
 
         for i in range(self.height):
@@ -51,8 +54,18 @@ class Box:
         for key, value in self.content.items():
             if content_y < self.y + self.height - 1:  
                 try:
-                    self.window.addstr(content_y, self.x + 1, f"{key}: {value}"[:self.width-2])
-                    content_y += 1
+                    if self.selected:
+                        self.window.addstr(content_y, self.x + 1, f"{key}:", curses.color_pair(2) | curses.A_BOLD )
+
+                        key_width = len(f"{key}:")
+                        self.window.addstr(content_y, self.x + 1 + key_width, f" {value}"[:self.width - 2 - key_width], curses.A_BOLD)
+                        content_y += 1
+                    else:
+                        self.window.addstr(content_y, self.x + 1, f"{key}:", curses.color_pair(2) )
+
+                        key_width = len(f"{key}:")
+                        self.window.addstr(content_y, self.x + 1 + key_width, f" {value}"[:self.width - 2 - key_width])
+                        content_y += 1
                 except curses.error:
                     pass
 
@@ -95,14 +108,14 @@ class DropBox:
                 else:
                     continue 
                 try:
-                    self.window.addch(self.y + i, self.x + j, char, border_attr)
+                    self.window.addch(self.y + i, self.x + j, char, curses.color_pair(2) | border_attr)
                 except curses.error:
                     pass
 
         if self.title and len(self.title) < self.width - 4:
             try:
                 title_x = self.x + 2
-                self.window.addstr(self.y, title_x, self.title, border_attr)
+                self.window.addstr(self.y, title_x, self.title,  curses.color_pair(2) | border_attr)
             except:
                 pass
 
@@ -110,13 +123,15 @@ class DropBox:
         for header, stats in self.content.items():
             if content_y < self.y + self.height - 2:
                 try:
-                    self.window.addstr(content_y, self.x + 1, header[:self.width-2])
+                    self.window.addstr(content_y, self.x + 1, header[:self.width-2], curses.color_pair(2) | curses.A_BOLD)
                     content_y += 1
                     
                     for key, value in stats.items():
                         if content_y < self.y + self.height - 2:
-                            self.window.addstr(content_y, self.x + 1, 
-                                f"{self.indent}{key}: {value}"[:self.width-2])
+                            self.window.addstr(content_y, self.x + 1, f"{self.indent}{key}:", curses.color_pair(2) )
+
+                            key_width = len(f"{self.indent}{key}:")
+                            self.window.addstr(content_y, self.x + 1 + key_width, f" {value}"[:self.width - 2 - key_width])
                             content_y += 1
                     content_y += 1
                 except curses.error:

@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 from dataclasses import dataclass
 from scapy.all import sniff, TCP, IP, Raw
 from queue import Queue
@@ -52,7 +52,7 @@ class PacketCapture:
 
         self.packet_queue = Queue()
         self.running = True
-        self.selected_server = ""
+        self.selected_server: Optional[str] = None
         self.buffer = ""
         self.data_lock = Lock()
         
@@ -78,7 +78,7 @@ class PacketCapture:
         for callback in self.callbacks[event.type]:
             callback(event)
 
-    def start(self, selected_server: str):
+    def start(self, selected_server: Optional[str] = None):
         self.selected_server = selected_server
         logging.debug("Starting capture thread")
         self.capture_thread = Thread(target=self._start_capture)
@@ -136,10 +136,17 @@ class PacketCapture:
             if (self.selected_server in self.servers and 
                 (ip_src == self.servers[self.selected_server] or 
                  ip_dst == self.servers[self.selected_server])):
-                
+
                 if packet.haslayer(Raw):
                     logging.debug("Put packet in queue")
                     self.packet_queue.put(packet)
+            else:
+                logging.debug("Running Else in packet callback")
+                if (ip_src in list(self.servers.values())) or (ip_dst in list(self.servers.values())):
+                    if packet.haslayer(Raw):
+                        logging.debug("Put packet in queue")
+                        self.packet_queue.put(packet)
+
 
     def parse_data(self, data: dict[str, Any]) -> GameEvent:
         logging.debug(f"Parsing data: {data}")

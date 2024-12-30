@@ -232,7 +232,7 @@ class DropsPage:
         self.window.erase()
         height, width = self.window.getmaxyx()
         title = "Resource Monitor"
-        self.window.addstr(1, (width - len(title)) // 2, title, curses.A_BOLD)
+        self.window.addstr(1, (width - len(title)) // 2, title, curses.A_BOLD | curses.color_pair(1) )
 
         rates = self.get_rates()
 

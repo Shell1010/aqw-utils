@@ -151,7 +151,7 @@ class ClassSkillsPage:
         height, width = self.window.getmaxyx()
 
         title = "Current Class Data"
-        self.window.addstr(1, (width - len(title)) // 2, title, curses.A_BOLD)
+        self.window.addstr(1, (width - len(title)) // 2, title, curses.A_BOLD | curses.color_pair(1) )
 
         for box in self.skill_boxes:
             box.draw()

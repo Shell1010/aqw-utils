@@ -4,7 +4,7 @@ from typing import Optional, List, Dict, Any
 import logging
 from src import PacketCapture, ServerSelectionPage, ClassSkillsPage, packet_capture
 from src import DropsPage
-
+import toml
 
 
 class GameMonitor:
@@ -12,11 +12,21 @@ class GameMonitor:
         self.packet_capture = PacketCapture()
         self.pages = {}
         self.page_order = ["class_data", "resource_monitor"]  
-        self.current_page_index = 0  
+        self.current_page_index = 0
+
+        conf = toml.load("./config.toml")
+        self.is_select = conf['drops'].get("select_server", False)
 
     def init_curses(self, stdscr: "curses.window"):
         curses.curs_set(0)  
         curses.use_default_colors()
+        curses.start_color()
+        curses.init_color(curses.COLOR_YELLOW, 1000, 800, 17)
+        curses.init_color(curses.COLOR_GREEN, 100, 700, 17)
+        curses.init_pair(1, curses.COLOR_YELLOW, -1)
+        curses.init_pair(2, curses.COLOR_GREEN, -1 )
+
+
         stdscr.timeout(100)  
         return stdscr
 
@@ -32,7 +42,12 @@ class GameMonitor:
             "resource_monitor": DropsPage(stdscr, self.packet_capture),
         }
 
-        self.current_page = self.pages["server_selection"]
+        if self.is_select:
+
+            self.current_page = self.pages["server_selection"]
+        else:
+            self.current_page = self.pages["class_data"]
+            self.packet_capture.start()
 
         while True:
             self.current_page.draw()

@@ -2,7 +2,7 @@ import curses
 
 from scapy.all import logging
 from ..packet_capture import PacketCapture
-
+import toml
 from typing import Optional
 
 class ServerSelectionPage:
@@ -11,14 +11,11 @@ class ServerSelectionPage:
         self.packet_capture = packet_capture
         self.selected_idx = 0
         self.servers = list(packet_capture.servers.keys())
-        curses.start_color()
-        curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Yellow text
-
+        
     def draw(self):
         self.window.erase()
         height, width = self.window.getmaxyx()
 
-        # Add your custom ASCII art title
         ascii_art = r"""
 
 ░█████╗░░██████╗░░██╗░░░░░░░██╗    ██╗░░░██╗████████╗██╗██╗░░░░░░██████╗
@@ -32,22 +29,19 @@ class ServerSelectionPage:
         for i, line in enumerate(art_lines):
             self.window.addstr(i, (width - len(line)) // 2, line, curses.color_pair(1))
 
-        # Lower "Select Server" title below the ASCII art
         title = "Select Server"
         self.window.addstr(
-            len(art_lines) + 1, (width - len(title)) // 2, title, curses.A_BOLD
+            len(art_lines) + 1, (width - len(title)) // 2, title, curses.color_pair(2) | curses.A_BOLD
         )
 
-        # Draw server list
         for i, server in enumerate(self.servers):
             y = len(art_lines) + 3 + i
             x = (width - len(server)) // 2
             if i == self.selected_idx:
-                self.window.addstr(y, x, server, curses.A_REVERSE)
+                self.window.addstr(y, x, server, curses.color_pair(2) | curses.A_REVERSE)
             else:
-                self.window.addstr(y, x, server)
+                self.window.addstr(y, x, server, curses.color_pair(2))
 
-        # Instructions at the bottom
         instructions = "Use ↑/↓ to select, Enter to confirm, q to quit"
         self.window.addstr(height - 2, (width - len(instructions)) // 2, instructions)
 
