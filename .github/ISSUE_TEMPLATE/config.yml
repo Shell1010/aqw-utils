@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: AQW Utils Community Support
+    url: https://github.com/Shell1010/aqw-utils/discussions
+    about: Please ask and answer questions here.
+  - name: AQW Utils Bugs/Features
+    url: https://github.com/Shell1010/aqw-utils/issues
+    about: Please report bugs and any feature requests here.
