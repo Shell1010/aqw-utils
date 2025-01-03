@@ -7,6 +7,8 @@ import time
 import logging
 import math
 import toml
+import scipy
+import numpy as np
 
 @dataclass
 class ItemDrop:
@@ -23,6 +25,8 @@ class DropsPage:
         conf = toml.load("./config.toml")
         self.rates_expiry = conf['drops'].get("rates_expiry", 60)
         self.drops_expiry = conf['drops'].get("drops_expiry", 3600)
+        self.margin_error = conf['drops'].get("margin_error", 0.02)
+        self.z_score = conf['drops'].get("z_score", 1.96)
         self.total_gold = 0
         self.total_exp = 0
         self.total_rep = 0
@@ -228,6 +232,24 @@ class DropsPage:
             title="Farm Stats"
         )
 
+        math_y = stats_y + 9
+        math_x = stats_x
+        self.math_box = Box(
+            self.window,
+            y=math_y,
+            x=math_x,
+            height=box_height + 8,
+            width=box_width,
+            title="Drop Stats"
+        )
+
+    def required_kills(self, observed_rate, z_score, margin_of_error):
+        p = observed_rate
+        q = 1 - p
+        n = (z_score**2 * p * q) / (margin_of_error**2)
+        return int(np.ceil(n))
+
+
     def draw(self):
         self.window.erase()
         height, width = self.window.getmaxyx()
@@ -295,9 +317,54 @@ class DropsPage:
                 "Drop/h": f"{stats['drops_per_hour']:.2f}"
             }
 
-        self.drop_box.update_content(drop_content)
     
+        selected_drop = self.drop_box.get_selected_header()
+  
+        
+        for i, (item_name, stats) in enumerate(sorted_items[:5]):
+            if item_name == selected_drop:
+                # 95% confidence and 2% error rate 
+                rate = stats['estimated_drop_rate']
+                if rate > 0:
+                    logging.debug("IN SELECTED DROP BOX")
+                    logging.debug(f"HERE IS MY RATE {rate / 100}")
+                    p = rate / 100
+                    n = self.required_kills(p, self.z_score, self.margin_error)
+                    q = 1 - p
+                    logging.debug(f"N value: {n}")
+                    logging.debug(f"NP value: {n*p}")
+                    logging.debug(f"NQ value: {n * (1 - p)}")
+                    self.math_box.update_content(
+                        {
+                            "Assumed Drop Rate": f"{p * 100:.2f}%",
+                            "Kills till significance": f"{n}",
+                            "Drops assumed": f"{n * p}",
+                            "Not Drops assumed": f"{n * q}",
+                            "Variance of estimate": f"{n * p * q:.2f}",
+                            "Standard Deviation": f"{np.sqrt(n * p * q):.2f}",
+                            "Margin of Error": f"{self.margin_error}",
+                            "Z Score": f"{self.z_score}",
+                        }
+                    )
+                else:
+                    self.math_box.update_content(
+                        {
+                            "Assumed Drop Rate": f"{rate:.2f}%",
+                            "Kills till significance": "N/A",
+                            "Drops assumed": "N/A",
+                            "Not Drops assumed": "N/A",
+                            "Variance of estimate": "N/A",
+                            "Standard Deviation": "N/A",
+                            "Margin of Error": "N/A",
+                            "Z Score": "N/A",
+                        }
+                    )
 
+
+
+        self.drop_box.update_content(drop_content)
+
+        self.math_box.draw()
         self.gold_box.draw()
         self.exp_box.draw()
         self.drop_box.draw()
@@ -308,8 +375,17 @@ class DropsPage:
         self.window.refresh()
     
     def handle_input(self):
+
         key = self.window.getch()
+
+        if key == curses.KEY_UP:
+            self.drop_box.selected_index = (self.drop_box.selected_index - 1) % len(self.drop_box.headers)
+
+        elif key == curses.KEY_DOWN:
+            self.drop_box.selected_index = (self.drop_box.selected_index + 1) % len(self.drop_box.headers)
+
         if key == ord("q"):
+
             return "quit"
         elif key == ord("\n"):
             return ord("\n")

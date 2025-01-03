@@ -2,3 +2,4 @@
 rates_expiry = 60
 drops_expiry = 3600
 select_server = false
+margin_error = 0.02

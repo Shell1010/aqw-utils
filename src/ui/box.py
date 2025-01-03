@@ -86,6 +86,8 @@ class DropBox:
         self.content: Dict[str, Dict[str, str]] = {}
         self.title = title
         self.indent = "  "
+        self.selected_index = 0  
+        self.headers = []
 
     def draw(self):
         border_attr = curses.A_NORMAL
@@ -120,10 +122,11 @@ class DropBox:
                 pass
 
         content_y = self.y + 1
-        for header, stats in self.content.items():
+        for i, (header, stats) in enumerate(self.content.items()):
             if content_y < self.y + self.height - 2:
                 try:
-                    self.window.addstr(content_y, self.x + 1, header[:self.width-2], curses.color_pair(2) | curses.A_BOLD)
+                    header_style = curses.color_pair(2) | curses.A_REVERSE | curses.A_BOLD if i == self.selected_index else curses.color_pair(2) | curses.A_BOLD
+                    self.window.addstr(content_y, self.x + 1, header[:self.width-2], header_style)
                     content_y += 1
                     
                     for key, value in stats.items():
@@ -139,3 +142,12 @@ class DropBox:
 
     def update_content(self, content: Dict[str, Dict[str, str]]):
         self.content = content
+        self.headers = list(content.keys())
+
+    
+
+
+    def get_selected_header(self) -> Optional[str]:
+        if self.headers:
+            return self.headers[self.selected_index]
+        return None
