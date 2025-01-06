@@ -7,6 +7,7 @@ import json
 import time
 from enum import Enum
 import logging
+import toml
 
 
 class PacketType(Enum):
@@ -18,11 +19,6 @@ class PacketType(Enum):
     UNKNOWN = "unknown"
     ADD_ITEM = "addItem"
     DROP_ITEM = "dropItem"
-    # No actual killed monster packet with name, etc
-    # I'll use this despite some edge cases existing
-    # Some monsters don't drop either
-    # As long as typ == "m" its a kill
-    # typ == "q" quest
     MONSTER_DEATH = "addGoldExp"
 
 @dataclass
@@ -55,6 +51,8 @@ class PacketCapture:
         self.selected_server: Optional[str] = None
         self.buffer = ""
         self.data_lock = Lock()
+        conf = toml.load("config.toml")
+        self.independent_instancing = conf['capture'].get("independent_instancing", False)
         
         self.raw_json_data: List[str] = []
         self.stat_history: List[Dict[str, Any]] = []
@@ -133,16 +131,14 @@ class PacketCapture:
             ip_src = packet[IP].src
             ip_dst = packet[IP].dst
 
-            if (self.selected_server in self.servers and 
-                (ip_src == self.servers[self.selected_server] or 
-                 ip_dst == self.servers[self.selected_server])):
+            if self.selected_server in self.servers and ip_src == self.servers[self.selected_server]:
 
                 if packet.haslayer(Raw):
                     logging.debug("Put packet in queue")
                     self.packet_queue.put(packet)
             else:
                 logging.debug("Running Else in packet callback")
-                if (ip_src in list(self.servers.values())) or (ip_dst in list(self.servers.values())):
+                if (ip_src in list(self.servers.values())):
                     if packet.haslayer(Raw):
                         logging.debug("Put packet in queue")
                         self.packet_queue.put(packet)
@@ -183,6 +179,32 @@ class PacketCapture:
                     'stats': stats,
                     'timestamp': time.time()
                 })
+
+            case PacketType.COMBAT:
+                if self.independent_instancing:
+                    a = obj.get("a", [])
+                    current_checks = []
+                    for item in a:
+                        cmd = item.get("cmd")
+                        aura = item.get("aura")
+                        auras = item.get("auras", []) guys 
+                        if cmd == "aura-":
+                            current_checks.append(aura.get("nam"))
+                        elif cmd == "aura+":
+                            for aur in auras:
+                                if aur.get("isNew", False):
+                                    current_checks.append(aur.get("nam"))
+                                
+                    for i, item in enumerate(current_checks):
+                        if i == 0:
+                            continue
+                        if item == current_checks[i - 1]:
+                            with open("./instance_auras.json", "a+") as f:
+                                json.dump(obj, f, indent=4)
+                                f.write("\n")
+
+
+
 
             case PacketType.ITEM_UPDATE:
                 items = obj.get('o', {})

@@ -1,5 +1,8 @@
 [drops]
 rates_expiry = 60
 drops_expiry = 3600
-select_server = false
+select_server = true
 margin_error = 0.02
+
+[capture]
+independent_instancing = false
