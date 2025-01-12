@@ -1,13 +1,14 @@
-from typing import Any, Callable, Dict, List, Optional
-from dataclasses import dataclass
-from scapy.all import sniff, TCP, IP, Raw
-from queue import Queue
-from threading import Thread, Lock
 import json
-import time
-from enum import Enum
 import logging
+import time
+from dataclasses import dataclass
+from enum import Enum
+from queue import Queue
+from threading import Lock, Thread
+from typing import Any, Callable, Dict, List, Optional
+
 import toml
+from scapy.all import IP, TCP, Raw, sniff
 
 
 class PacketType(Enum):
@@ -21,11 +22,13 @@ class PacketType(Enum):
     DROP_ITEM = "dropItem"
     MONSTER_DEATH = "addGoldExp"
 
+
 @dataclass
 class GameEvent:
     type: PacketType
     data: Dict[str, Any]
     timestamp: float
+
 
 class PacketCapture:
     def __init__(self):
@@ -52,8 +55,10 @@ class PacketCapture:
         self.buffer = ""
         self.data_lock = Lock()
         conf = toml.load("config.toml")
-        self.independent_instancing = conf['capture'].get("independent_instancing", False)
-        
+        self.independent_instancing = conf["capture"].get(
+            "independent_instancing", False
+        )
+
         self.raw_json_data: List[str] = []
         self.stat_history: List[Dict[str, Any]] = []
         self.skill_data: Dict[str, Any] = {}
@@ -68,7 +73,9 @@ class PacketCapture:
             packet_type: [] for packet_type in PacketType
         }
 
-    def register_callback(self, event_type: PacketType, callback: Callable[[GameEvent], None]):
+    def register_callback(
+        self, event_type: PacketType, callback: Callable[[GameEvent], None]
+    ):
         logging.debug(f"Added callback: {callback}")
         self.callbacks[event_type].append(callback)
 
@@ -105,20 +112,20 @@ class PacketCapture:
                 in_string = not in_string
 
             if in_string:
-                if char == '\\' and not escaped:
+                if char == "\\" and not escaped:
                     escaped = True
                 else:
                     escaped = False
                 continue
 
-            if char == '{':
+            if char == "{":
                 if depth == 0:
                     start = i
                 depth += 1
-            elif char == '}':
+            elif char == "}":
                 depth -= 1
                 if depth == 0:
-                    objects.append(data[start:i+1])
+                    objects.append(data[start : i + 1])
                     start = i + 1
 
         return objects, data[start:]
@@ -129,20 +136,24 @@ class PacketCapture:
 
         if packet.haslayer(TCP) and packet.haslayer(IP):
             ip_src = packet[IP].src
-            ip_dst = packet[IP].dst
 
-            if self.selected_server in self.servers and ip_src == self.servers[self.selected_server]:
+            if (
+                self.selected_server in self.servers
+                and ip_src == self.servers[self.selected_server]
+            ):
 
                 if packet.haslayer(Raw):
                     logging.debug("Put packet in queue")
                     self.packet_queue.put(packet)
+                    # logging.debug(f"RAW PACKET IS HERE: {packet[Raw].load}")
+
             else:
                 logging.debug("Running Else in packet callback")
-                if (ip_src in list(self.servers.values())):
+                if ip_src in list(self.servers.values()):
                     if packet.haslayer(Raw):
                         logging.debug("Put packet in queue")
+                        # logging.debug(f"RAW PACKET IS HERE: {packet}")
                         self.packet_queue.put(packet)
-
 
     def parse_data(self, data: dict[str, Any]) -> GameEvent:
         logging.debug(f"Parsing data: {data}")
@@ -151,34 +162,32 @@ class PacketCapture:
 
         logging.debug(f"Command Type: {cmd}")
         logging.debug("Settings Packet Type")
-        event_type = PacketType(cmd) if cmd in [e.value for e in PacketType] else PacketType.UNKNOWN
-        logging.debug(f"Packet Type: {event_type}") 
+        event_type = (
+            PacketType(cmd)
+            if cmd in [e.value for e in PacketType]
+            else PacketType.UNKNOWN
+        )
+        logging.debug(f"Packet Type: {event_type}")
 
         match event_type:
             case PacketType.AURA_PASSIVE:
-                auras = obj.get('auras', [])
+                auras = obj.get("auras", [])
                 for aura in auras:
-                    self.aura_data[aura['nam']] = {
-                        'effects': aura.get('e', []),
-                        'timestamp': time.time()
+                    self.aura_data[aura["nam"]] = {
+                        "effects": aura.get("e", []),
+                        "timestamp": time.time(),
                     }
 
             case PacketType.SKILL_DATA:
                 logging.debug("Matching Skill Type")
                 logging.debug("Processing SKILL_DATA")
-                actives = obj.get('actions', {}).get('active', {})
+                actives = obj.get("actions", {}).get("active", {})
                 logging.debug(f"Active skills found: {actives}")
-                self.skill_data = {
-                    'skills': actives,
-                    'timestamp': time.time()
-                }
+                self.skill_data = {"skills": actives, "timestamp": time.time()}
 
             case PacketType.STAT_UPDATE:
-                stats = obj.get('sta', {})
-                self.stat_history.append({
-                    'stats': stats,
-                    'timestamp': time.time()
-                })
+                stats = obj.get("sta", {})
+                self.stat_history.append({"stats": stats, "timestamp": time.time()})
 
             case PacketType.COMBAT:
                 if self.independent_instancing:
@@ -187,14 +196,14 @@ class PacketCapture:
                     for item in a:
                         cmd = item.get("cmd")
                         aura = item.get("aura")
-                        auras = item.get("auras", []) guys 
+                        auras = item.get("auras", [])
                         if cmd == "aura-":
                             current_checks.append(aura.get("nam"))
                         elif cmd == "aura+":
                             for aur in auras:
                                 if aur.get("isNew", False):
                                     current_checks.append(aur.get("nam"))
-                                
+
                     for i, item in enumerate(current_checks):
                         if i == 0:
                             continue
@@ -203,48 +212,26 @@ class PacketCapture:
                                 json.dump(obj, f, indent=4)
                                 f.write("\n")
 
-
-
-
             case PacketType.ITEM_UPDATE:
-                items = obj.get('o', {})
-                self.item_data = {
-                    'items': items,
-                    'timestamp': time.time()
-                }
+                items = obj.get("o", {})
+                self.item_data = {"items": items, "timestamp": time.time()}
 
             case PacketType.MONSTER_DEATH:
-                self.monster_death.append({
-                    'obj': obj,
-                    'timestamp': time.time()
-                })
-
+                self.monster_death.append({"obj": obj, "timestamp": time.time()})
 
             case PacketType.DROP_ITEM:
-                self.item_drops.append({
-                    'obj': obj,
-                    'timestamp': time.time()
-                })
-
+                self.item_drops.append({"obj": obj, "timestamp": time.time()})
 
             case PacketType.ADD_ITEM:
-                self.added_item_drops.append({
-                    'obj': obj,
-                    'timestamp': time.time()
-                })
-
+                self.added_item_drops.append({"obj": obj, "timestamp": time.time()})
 
             case PacketType.UNKNOWN:
                 logging.debug("In Unknown")
                 pass
-        
+
         self.raw_json_data.append(json.dumps(data, indent=4))
 
-        event = GameEvent(
-            type=event_type,
-            data=obj,
-            timestamp=time.time()
-        )
+        event = GameEvent(type=event_type, data=obj, timestamp=time.time())
 
         logging.debug(f"Created event: {event}")
         return event
@@ -255,12 +242,17 @@ class PacketCapture:
                 logging.debug("Got packet from queue")
                 packet = self.packet_queue.get()
                 payload = packet[Raw].load
-                clean_payload = payload.replace(b'\x00', b'').decode('utf-8', errors='ignore')
+                clean_payload = payload.replace(b"\x00", b"").decode(
+                    "utf-8", errors="ignore"
+                )
                 logging.debug(f"Length of payload: {len(clean_payload)}")
                 # This check is so that if the server somehow "forgets" (it does)
                 # It doesn't add any data from the previous completed buffer
                 if len(clean_payload) <= len(self.last_obj):
-                    if clean_payload == self.last_obj[-len(clean_payload):] and self.check_last:
+                    if (
+                        clean_payload == self.last_obj[-len(clean_payload) :]
+                        and self.check_last
+                    ):
                         continue
                 logging.debug("Locking in process packet")
                 with self.data_lock:
@@ -274,7 +266,7 @@ class PacketCapture:
 
                     logging.debug("Gathering json objects from queue packet")
                     json_objects, self.buffer = self.extract_json_objects(self.buffer)
-                
+
                     for obj in json_objects:
                         try:
                             self.last_obj = obj
